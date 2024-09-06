@@ -107,7 +107,14 @@ app.get('/trangchu', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'TrangChu.html'));
   });
 });
+// 6. Xử lý đăng xuất (POST request tới /logout)
+app.post('/logout', (req, res) => {
+  // Xóa cookie chứa token
+  res.clearCookie('token');
 
+  // Chuyển hướng người dùng về trang đăng nhập hoặc trang chính
+  res.redirect('/dang-nhap');
+});
 // Khởi động server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
