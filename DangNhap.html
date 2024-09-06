@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #b0df58c8;
+    }
+   /* Đặt kích thước và căn giữa form */
+form {
+  width: 350px; /* Đặt độ rộng của form */  
+  margin: 0 auto; /* Căn giữa form theo chiều ngang */
+  padding: 20px; /* Khoảng cách bên trong form */
+  background-color: #17e18d; /* Màu nền */
+  border-radius: 10px; /* Bo góc cho form */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Tạo bóng đổ nhẹ cho form */
+}
+label {
+  width: 50%; /* Đặt label có chiều rộng bằng với button */
+  margin-bottom: 10px;
+  display: block;
+ 
+}
+
+
+
+input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #43149388;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    </style>
+  </head>
+  <body>
+    <form action="/dang-nhap" method="POST">
+      <h2>Đăng Nhập</h2>
+      <label for="username">Họ tên:</label>
+      <input type="text" id="username" name="username" required>
+   
+      <label for="password">Mật khẩu:</label>
+      <input type="password" id="password" name="password" required>
+      
+    
+      <button type="submit">Đăng nhập</button>
+   
+  
+    <p>Chưa có tài khoản? <button onclick="window.location.href='DangKy.html'">Đăng Ký</button></p>
+    </form>
+  </body>
+  </html>
