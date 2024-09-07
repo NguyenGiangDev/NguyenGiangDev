@@ -4,61 +4,216 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trang Chủ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Roboto', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      background-image: url('images/cat.jpg');
-      background-size: cover; /* Để ảnh phủ toàn bộ màn hình */
-      background-position: center; /* Căn giữa ảnh nền */
-      background-repeat: no-repeat; /* Không lặp lại ảnh */
-    }
-
-    /* Đặt kích thước và căn giữa form */
-    h2 {
-      font-size: 36px; /* Thay đổi cỡ chữ thành lớn hơn */
-      font-weight: bold;
-      color: #f1ecec;
-    }
-
-    label {
-      width: 50%;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: #43149388;
+      flex-direction: column;
+      min-height: 100vh;
+      background-image: url('images/1220523.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
       color: #fff;
+    }
+
+    h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Form tìm kiếm */
+    #search-form {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    #search-card-input {
+      padding: 10px;
+      width: 300px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    #search-button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 16px;
     }
 
-    button:hover {
+    #search-button:hover {
       background-color: #218838;
+    }
+
+    /* Nút đăng xuất */
+    .logout-button {
+      background-color: #dc3545;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .logout-button:hover {
+      background-color: #c82333;
+    }
+
+    /* Container thẻ bài */
+    #card-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      max-width: 1200px;
+    }
+
+    .card {
+      background-color: #fff;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      width: 250px;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     }
   </style>
 </head>
 <body>
-  <h2>Chào mừng tới trang web của Nguyễn Đình Giang đẹp trai</h2>
-
-  <!-- Form đăng xuất -->
-  <form action="/logout" method="POST">
-    <button type="submit">Đăng xuất</button>
+  <h2>Thông tin các lá bài</h2>
+  
+  <!-- Form tìm kiếm -->
+  <form id="search-form">
+    <input type="text" id="search-card-input" name="searchcard" placeholder="Nhập tên lá bài..." required>
+    <button type="submit" id="search-button">Tìm kiếm</button>
   </form>
+  
+  <!-- Nút đăng xuất -->
+  <button id="logout-button" class="logout-button">Đăng xuất</button>
+  
+  <!-- Container hiển thị các lá bài -->
+  <div id="card-container"></div>
+
+  <script>
+    const renderCards = (cards) => {
+      const container = document.getElementById('card-container');
+      container.innerHTML = ''; 
+
+      cards.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'card';
+
+        cardElement.innerHTML = `
+          <img src="${card.card_images[0].image_url}" alt="${card.name}">
+          <h3>${card.name}</h3>
+          <p>Type: ${card.type}</p>
+          <p>Description: ${card.desc}</p>
+        `;
+
+        container.appendChild(cardElement);
+      });
+    };
+
+    const fetchCardInfo = async () => {
+      try {
+        const response = await fetch('/api/cards');
+        const data = await response.json();
+        renderCards(data);
+      } catch (error) {
+        console.error('Error fetching card data:', error);
+      }
+    };
+
+    fetchCardInfo();
+
+    document.getElementById('logout-button').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          window.location.href = '/dang-nhap';
+        } else {
+          console.error('Error during logout');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+      }
+    });
+
+    document.getElementById('search-form').addEventListener('submit', async (event) => {
+      event.preventDefault(); 
+
+      const searchQuery = document.getElementById('search-card-input').value.trim();
+
+      try {
+        const response = await fetch('/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ searchcard: searchQuery }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          renderCards(data);
+        } else {
+          const errorText = await response.text();
+          console.error('Error searching for card:', errorText);
+          alert(errorText);
+        }
+      } catch (error) {
+        console.error('Error during search:', error);
+        alert('Đã xảy ra lỗi khi tìm kiếm.');
+      }
+    });
+  </script>
 </body>
 </html>

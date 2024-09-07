@@ -5,14 +5,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const path = require('path');
-
+const axios = require('axios'); // Thêm axios vào dự án
 const app = express();
 const PORT = 3000;
 
 // Middleware đọc dữ liệu form và cookie
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-
+app.use(express.json()); // Thêm dòng này để xử lý JSON body
 // Kết nối tới MongoDB
 mongoose.connect('mongodb://localhost:27017/userDB')
   .then(() => console.log('MongoDB connected'))
@@ -115,6 +115,86 @@ app.post('/logout', (req, res) => {
   // Chuyển hướng người dùng về trang đăng nhập hoặc trang chính
   res.redirect('/dang-nhap');
 });
+// 7. Route lấy thông tin các lá bài
+app.get('/api/cards', async (req, res) => {
+  try {
+    const response = await axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php');
+    const allCards = response.data.data; // Lấy toàn bộ dữ liệu lá bài
+    
+    // Lấy 50 lá bài đầu tiên
+    const partCard = allCards.slice(0, 5000);
+
+    // Gửi 50 lá bài về client
+    res.json(partCard);
+  } catch (error) {
+    console.error('Error fetching card data:', error);
+    res.status(500).send('Lỗi khi lấy dữ liệu các lá bài');
+  }
+});
+
+// 8. Xử lý tìm kiếm lá bài (POST request tới /logout)
+app.post('/search', async (req, res) => {
+  const { searchcard } = req.body;
+ // console.log('Received searchcard:', searchcard); // Thêm dòng này để kiểm tra dữ liệu nhận được
+  try {
+    if (!searchcard || typeof searchcard !== 'string') {
+      return res.status(400).send('Từ khóa tìm kiếm không hợp lệ');
+    }
+
+    const response = await axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php');
+    const allCards = response.data.data;
+
+    const matchedCards = allCards.filter(card => {
+      if (card.name && typeof card.name === 'string') {
+        return card.name.toLowerCase().includes(searchcard.toLowerCase());
+      }
+      return false;
+    });
+
+    if (matchedCards.length > 0) {
+      res.json(matchedCards);
+    } else {
+      res.status(404).send('Không tìm thấy lá bài nào phù hợp.');
+    }
+  } catch (error) {
+    console.error('Error searching cards:', error);
+    res.status(500).send('Lỗi khi tìm kiếm lá bài.');app.post('/search', async (req, res) => {
+      const { searchcard } = req.body;
+      
+    
+      try {
+        if (!searchcard || typeof searchcard !== 'string') {
+          return res.status(400).send('Từ khóa tìm kiếm không hợp lệ');
+        }
+    
+        const response = await axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php');
+        const allCards = response.data.data;
+    
+        const matchedCards = allCards.filter(card => {
+          if (card.name && typeof card.name === 'string') {
+            return card.name.toLowerCase().includes(searchcard.toLowerCase());
+          }
+          return false;
+        });
+    
+        if (matchedCards.length > 0) {
+          res.json(matchedCards);
+        } else {
+          res.status(404).send('Không tìm thấy lá bài nào phù hợp.');
+        }
+      } catch (error) {
+        console.error('Error searching cards:', error);
+        res.status(500).send('Lỗi khi tìm kiếm lá bài.');
+      }
+    });
+    
+  }
+});
+
+
+
+
+
 // Khởi động server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
