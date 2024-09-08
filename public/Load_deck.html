@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck Uploader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+          
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-image: url('images/1214259.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+        }
+
+        .deck-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            margin: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .card img {
+            width: 150px;
+            height: 220px;
+        }
+
+        .card p {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: red;
+        }
+
+        #upload-section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Deck JSON</h1>
+
+    <!-- Phần upload file JSON -->
+    <div id="upload-section">
+        <input type="file" id="fileInput" accept=".json">
+        <button onclick="loadDeck()">Load Deck</button>
+        <p id="error-message" class="error-message"></p>
+    </div>
+
+    <!-- Nơi hiển thị deck -->
+    <div id="deck-container" class="deck-container"></div>
+
+    <script>
+        // Hàm xử lý khi người dùng tải file lên
+        function loadDeck() {
+            const fileInput = document.getElementById('fileInput');
+            const errorMessage = document.getElementById('error-message');
+            const deckContainer = document.getElementById('deck-container');
+
+            errorMessage.textContent = ''; // Xóa thông báo lỗi cũ
+            deckContainer.innerHTML = ''; // Xóa deck cũ
+
+            const file = fileInput.files[0]; // Lấy file mà người dùng đã chọn
+
+            if (!file) {
+                errorMessage.textContent = 'Vui lòng chọn file .json';
+                return;
+            }
+
+            // Đọc file JSON
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const deckData = JSON.parse(event.target.result); // Parse dữ liệu JSON
+                    displayDeck(deckData); // Hiển thị deck
+                } catch (error) {
+                    errorMessage.textContent = 'Lỗi khi phân tích file JSON: ' + error.message;
+                }
+            };
+
+            reader.onerror = function(error) {
+                errorMessage.textContent = 'Lỗi khi đọc file: ' + error.message;
+            };
+
+            reader.readAsText(file); // Đọc file
+        }
+
+        function displayDeck(deckData) {
+            const deckContainer = document.getElementById('deck-container');
+
+            // Kiểm tra dữ liệu đầu vào
+            if (!Array.isArray(deckData)) {
+                document.getElementById('error-message').textContent = 'Dữ liệu JSON không hợp lệ.';
+                return;
+            }
+
+            // Duyệt qua từng lá bài trong deck và tạo HTML để hiển thị
+            deckData.forEach(card => {
+                // Kiểm tra cấu trúc của mỗi lá bài
+                if (card.image && card.name) {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card';
+
+                    cardElement.innerHTML = `
+                        <img src="${card.image}" alt="${card.name}">
+                        <p>${card.name}</p>
+                    `;
+
+                    deckContainer.appendChild(cardElement);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

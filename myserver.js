@@ -5,14 +5,19 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const path = require('path');
-const axios = require('axios'); // Thêm axios vào dự án
+const axios = require('axios');
+const fs = require('fs');
 const app = express();
 const PORT = 3000;
 
-// Middleware đọc dữ liệu form và cookie
+const saveDirectory = path.join(__dirname, 'saved_decks');
+
+// Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.json()); // Thêm dòng này để xử lý JSON body
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // Kết nối tới MongoDB
 mongoose.connect('mongodb://localhost:27017/userDB')
   .then(() => console.log('MongoDB connected'))
@@ -107,6 +112,7 @@ app.get('/trangchu', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'TrangChu.html'));
   });
 });
+
 // 6. Xử lý đăng xuất (POST request tới /logout)
 app.post('/logout', (req, res) => {
   // Xóa cookie chứa token
@@ -115,11 +121,12 @@ app.post('/logout', (req, res) => {
   // Chuyển hướng người dùng về trang đăng nhập hoặc trang chính
   res.redirect('/dang-nhap');
 });
+
 // 7. Route lấy thông tin các lá bài
 app.get('/api/cards', async (req, res) => {
   try {
     const response = await axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php');
-    const allCards = response.data.data; // Lấy toàn bộ dữ liệu lá bài
+    const allCards = response.data.data;
     
     // Lấy 50 lá bài đầu tiên
     const partCard = allCards.slice(0, 5000);
@@ -132,10 +139,10 @@ app.get('/api/cards', async (req, res) => {
   }
 });
 
-// 8. Xử lý tìm kiếm lá bài (POST request tới /logout)
+// 8. Xử lý tìm kiếm lá bài (POST request tới /search)
 app.post('/search', async (req, res) => {
   const { searchcard } = req.body;
- // console.log('Received searchcard:', searchcard); // Thêm dòng này để kiểm tra dữ liệu nhận được
+  
   try {
     if (!searchcard || typeof searchcard !== 'string') {
       return res.status(400).send('Từ khóa tìm kiếm không hợp lệ');
@@ -158,43 +165,52 @@ app.post('/search', async (req, res) => {
     }
   } catch (error) {
     console.error('Error searching cards:', error);
-    res.status(500).send('Lỗi khi tìm kiếm lá bài.');app.post('/search', async (req, res) => {
-      const { searchcard } = req.body;
-      
-    
-      try {
-        if (!searchcard || typeof searchcard !== 'string') {
-          return res.status(400).send('Từ khóa tìm kiếm không hợp lệ');
-        }
-    
-        const response = await axios.get('https://db.ygoprodeck.com/api/v7/cardinfo.php');
-        const allCards = response.data.data;
-    
-        const matchedCards = allCards.filter(card => {
-          if (card.name && typeof card.name === 'string') {
-            return card.name.toLowerCase().includes(searchcard.toLowerCase());
-          }
-          return false;
-        });
-    
-        if (matchedCards.length > 0) {
-          res.json(matchedCards);
-        } else {
-          res.status(404).send('Không tìm thấy lá bài nào phù hợp.');
-        }
-      } catch (error) {
-        console.error('Error searching cards:', error);
-        res.status(500).send('Lỗi khi tìm kiếm lá bài.');
-      }
-    });
-    
+    res.status(500).send('Lỗi khi tìm kiếm lá bài.');
   }
 });
 
+// 9. Điều hướng đến trang tạo deck
+app.get('/tao-deck', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'CreateDeck.html')); // Điều hướng đến file HTML của trang tạo deck
+});
 
+// 10. Xử lý Tạo deck (POST request tới /createdeck)
+app.post('/createdeck', (req, res) => {
+  // Xóa cookie chứa token
+  res.redirect('/tao-deck');
+});
 
+// 11. Lưu deck
+app.post('/downdeck', (req, res) => {
+  const deckData = req.body;
+  
+  // Đảm bảo thư mục tồn tại
+  if (!fs.existsSync(saveDirectory)) {
+    fs.mkdirSync(saveDirectory, { recursive: true });
+  }
 
+  const fileName = 'deck.json';
+  const filePath = path.join(saveDirectory, fileName);
 
+  fs.writeFile(filePath, JSON.stringify(deckData, null, 2), (err) => {
+    if (err) {
+      console.error('Lỗi khi ghi file:', err);
+      return res.status(500).send('Đã xảy ra lỗi khi lưu deck.');
+    }
+
+    res.status(200).json({ fileUrl: `/saved_decks/${fileName}` });
+  });
+});
+
+app.use('/saved_decks', express.static(path.join(__dirname, 'saved_decks')));
+//12. Điều hướng đến trang hiện thị deck
+app.get('/yourdeck', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Load_deck.html'));
+});
+
+app.post('/your-deck', (req, res)=> {
+  res.redirect('/yourdeck');
+});
 // Khởi động server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

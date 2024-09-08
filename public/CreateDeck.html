@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tạo Deck</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-image: url('images/1214259.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    h2, h3, h4 p {
+      margin-bottom: 20px;
+      color:#fff;
+    }
+
+    #create-deck-button {
+      padding: 10px 20px;
+      background-color: #28a737;
+      color: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #create-deck-button:hover {
+      background-color: #218838;
+    }
+
+    #deck-builder {
+      display: flex;
+      gap: 20px;
+      width: 80%;
+      margin-top: 20px;
+    }
+
+    #deck-section, #search-section {
+      flex: 1;
+      padding: 20px;
+      background-color: black;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      height: 400px; /* Đặt chiều cao cố định để thanh cuộn hoạt động */
+      overflow-y: auto; /* Bật thanh cuộn dọc */
+    }
+
+    #search-form {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    #search-card-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #search-button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #007bff;
+      color: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #downdeck-button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #007bff;
+      color: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #Your-deck {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #007bff;
+      color: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #card-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card, .deck-card {
+      background-color: none;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+      width: 150px;
+      cursor: pointer;
+    }
+
+    .card img, .deck-card img {
+      width: 100px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+
+    .deck-card h4 {
+      font-size: 14px;
+    }
+
+    #deck-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Quản lý Deck</h2>
+
+  <!-- Khu vực tạo deck -->
+  <div id="deck-builder">
+    <!-- Phần bên trái: Tìm kiếm và hiển thị các lá bài -->
+    <div id="search-section">
+      <h3>Tìm kiếm lá bài</h3>
+      <form id="search-form" method="post">
+        <input type="text" id="search-card-input" placeholder="Nhập tên lá bài..." required>
+        <button type="submit" id="search-button">Tìm kiếm</button>
+      </form>
+      <div id="card-container"></div> 
+    </div>
+    
+    <!-- Phần bên phải: Hiển thị các lá bài đã chọn -->
+    <div id="deck-section">
+      <h3>Deck của bạn</h3>
+      <div id="deck-container"></div>
+      <!-- Nút lưu Deck -->
+      <button id="downdeck-button" class="downdeck-button">Lưu Deck</button>
+      <button id="Your-deck" class="Your-deck">Deck của bạn</button>
+    </div>
+  </div>
+ 
+  <script>
+    // Hàm hiển thị kết quả tìm kiếm các lá bài
+    const renderCards = (cards) => {
+      const container = document.getElementById('card-container');
+      container.innerHTML = ''; // Xóa nội dung cũ
+
+      cards.forEach(card => {
+        const cardElement = document.createElement('div');
+        cardElement.className = 'card';
+        cardElement.onclick = () => {
+          addToDeck(card);
+        };
+
+        cardElement.innerHTML = `
+          <img src="${card.card_images[0].image_url}" alt="${card.name}">
+          <h3>${card.name}</h3>
+          <p>Type: ${card.type}</p>
+          <p>Description: ${card.desc}</p>
+        `;
+
+        container.appendChild(cardElement);
+      });
+    };
+
+    // Khi nhấn vào thẻ bài, thêm nó vào Deck
+    const addToDeck = (card) => {
+      const deckContainer = document.getElementById('deck-container');
+      const cardName = card.name;
+
+      // Kiểm tra số lượng lá bài với tên giống nhau trong deck
+      const existingCards = Array.from(deckContainer.getElementsByClassName('deck-card'));
+      const count = existingCards.filter(deckCard => {
+        const cardNameElement = deckCard.querySelector('h4');
+        return cardNameElement && cardNameElement.textContent === cardName;
+      }).length;
+
+      if (count >= 3) {
+        alert('Bạn đã có quá 3 lá bài giống nhau trong deck.');
+        return;
+      }
+
+      const deckCardElement = document.createElement('div');
+      deckCardElement.className = 'deck-card';
+      deckCardElement.innerHTML = `
+        <img src="${card.card_images[0].image_url}" alt="${card.name}">
+        <h4>${card.name}</h4>
+      `;
+
+      // Thêm sự kiện xóa lá bài khỏi deck
+      deckCardElement.onclick = () => {
+        deckContainer.removeChild(deckCardElement); // Xóa lá bài khỏi deck khi nhấn vào nó
+      };
+
+      deckContainer.appendChild(deckCardElement);
+    };
+
+    // Gửi yêu cầu tìm kiếm lá bài
+    document.getElementById('search-form').addEventListener('submit', async (event) => {
+      event.preventDefault(); // Ngăn form tải lại trang
+
+      const searchQuery = document.getElementById('search-card-input').value.trim();
+
+      try {
+        const response = await fetch('/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ searchcard: searchQuery }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          renderCards(data); // Hiển thị kết quả tìm kiếm
+        } else {
+          alert('Không tìm thấy lá bài nào.');
+        }
+      } catch (error) {
+        console.error('Đã xảy ra lỗi khi tìm kiếm:', error);
+        alert('Đã xảy ra lỗi khi tìm kiếm.');
+      }
+    });
+
+    // Gửi yêu cầu lưu deck
+    document.getElementById('downdeck-button').addEventListener('click', async () => {
+      const deckContainer = document.getElementById('deck-container');
+      const deckCards = Array.from(deckContainer.getElementsByClassName('deck-card'));
+
+      // Tạo một mảng chứa các thông tin của lá bài trong deck
+      const deckData = deckCards.map(deckCard => {
+        const imgElement = deckCard.querySelector('img');
+        const nameElement = deckCard.querySelector('h4');
+
+        return {
+          name: nameElement.textContent,
+          image: imgElement.src
+        };
+      });
+
+      try {
+        const response = await fetch('/downdeck', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(deckData),
+        });
+
+        if (response.ok) {
+          const data = await response.json(); // Phân tích phản hồi JSON từ server
+          
+          if (data.fileUrl) {
+            const link = document.createElement('a');
+            link.href = data.fileUrl; // Sử dụng URL được cung cấp
+            link.download = 'deck.json'; // Tên file tải về
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } else {
+            alert('Đã xảy ra lỗi khi lưu deck.');
+          }
+        } else {
+          alert('Đã xảy ra lỗi khi lưu deck.');
+        }
+      } catch (error) {
+        console.error('Lỗi khi lưu deck:', error);
+        alert('Đã xảy ra lỗi khi lưu deck.');
+      }
+    });
+    document.getElementById('Your-deck').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/your-deck', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          window.location.href = '/yourdeck';
+        } else {
+          console.error('Error during logout');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+      }
+    });
+
+  </script>
+
+</body>
+</html>
